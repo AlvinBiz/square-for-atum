@@ -24,10 +24,10 @@ function require_multi($files) {
 
 define('S4A_PLUGIN_URL',realpath(__FILE__));
 
-
 require_multi(
  "inc/activation.php",
  "admin/options.php",
+ "admin/notices.php",
  "classes/db.php",
  "classes/curl.php",
  "classes/api.php",
@@ -36,3 +36,4 @@ require_multi(
  "classes/sync-inventory.php",
  "inc/functions.php"
 );
+

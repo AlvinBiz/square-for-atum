@@ -11,26 +11,36 @@ function decrease_stock($order_id) {
 
     $ordered_quantity = $item_data['quantity'];
     $api_key = get_option('api_key');
-    $unsynced_inventory_name = get_option('unsynced_inventory_name');
-    $inventory_name = get_option('synced_inventory_name');
 
     if($item_data['variation_id']) {
-      $sync = new SyncInventory($item_data['variation_id'], $api_key, NULL, $ordered_quantity, $inventory_name, $unsynced_inventory_name);
+      $sync = new SyncInventory($item_data['variation_id'], $api_key, NULL, $ordered_quantity);
       $sync->decrease_stock();
       $squareStock = $sync->get_square_stock();
+
+      $file_path = WP_PLUGIN_DIR . '/square-for-atum/error_log.txt';
+      $myfile = fopen($file_path, "a") or die("Unable to open file!");
+      $txt = ' Square stock: ' . $squareStock;
+      fwrite($myfile, $txt);
+      fclose($myfile);
 
       $_product = new WC_Product($product_id);
 
-      $_product->set_stock($squareStock);
+      if (!is_null($squareStock)) {
+        $_product->set_stock($squareStock);
+      }
+      
     } else {
-      $sync = new SyncInventory($ordered_product_id, $api_key, NULL, $ordered_quantity, $inventory_name, $unsynced_inventory_name);
+      $sync = new SyncInventory($ordered_product_id, $api_key, NULL, $ordered_quantity);
       $sync->decrease_stock();
       $squareStock = $sync->get_square_stock();
 
-      update_post_meta( $ordered_product_id, '_stock', $squareStock );
+      if (!is_null($squareStock)) {
+        update_post_meta( $ordered_product_id, '_stock', $squareStock );
+      }   
     }
 
   }
+
 }
 
 function sync_in_store_inventory_on_save($product_obj, $data) {
@@ -51,17 +61,22 @@ function sync_in_store_inventory_on_save($product_obj, $data) {
           $variation_obj = wc_get_product($variation_id);
           $variation_sku = $variation_obj->get_sku();
 
-          $sync = new SyncInventory($variation_id, $api_key, $variation_sku, NULL, $inventory_name, $unsynced_inventory_name);
+          $sync = new SyncInventory($variation_id, $api_key, $variation_sku, NULL);
           $squareStock = $sync->get_square_stock();
 
-          update_post_meta( $variation_id, '_stock', $squareStock );
+          if (!is_null($squareStock)) {
+            update_post_meta( $variation_id, '_stock', $squareStock );
+          }
 
         }
       } else {
-        $sync = new SyncInventory($product_id, $api_key, $product_sku, NULL, $inventory_name, $unsynced_inventory_name);
+        $sync = new SyncInventory($product_id, $api_key, $product_sku, NULL);
         $squareStock = $sync->get_square_stock();
 
-        update_post_meta( $product_id, '_stock', $squareStock );
+        if (!is_null($squareStock)) {
+          update_post_meta( $product_id, '_stock', $squareStock );
+        }
+
       }
 
 }
@@ -81,18 +96,22 @@ function sync_in_store_inventory_on_add_to_cart($cart_id, $product, $request_qua
         $variation_obj = wc_get_product($variation_id);
         $variation_sku = $variation_obj->get_sku();
 
-        $sync = new SyncInventory($variation_id, $api_key, $variation_sku, NULL, $inventory_name, $unsynced_inventory_name);
+        $sync = new SyncInventory($variation_id, $api_key, $variation_sku, NULL);
         $squareStock = $sync->get_square_stock();
 
-
-        update_post_meta( $variation_id, '_stock', $squareStock );
+        if (!is_null($squareStock)) {
+          update_post_meta( $variation_id, '_stock', $squareStock );
+        }
 
       } else {
 
-        $sync = new SyncInventory($product_id, $api_key, $product_sku, NULL, $inventory_name, $unsynced_inventory_name);
+        $sync = new SyncInventory($product_id, $api_key, $product_sku, NULL);
         $squareStock = $sync->get_square_stock();
 
-        update_post_meta( $product_id, '_stock', $squareStock );
+        if (!is_null($squareStock)) {
+
+          update_post_meta( $product_id, '_stock', $squareStock );
+        }
 
       }
 

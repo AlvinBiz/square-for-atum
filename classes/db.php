@@ -12,18 +12,29 @@ class DB {
   }
 
 
-  public function getATUMUnsyncedStock($product_id, $inventory_name) {
+  public function getATUMUnsyncedStock($product_id) {
 
-      $this->query = $this->wpdb->prepare("SELECT id FROM {$this->wpdb->prefix}atum_inventories WHERE product_id = '{$product_id}' AND name = '{$inventory_name}'");
+      $this->query = $this->wpdb->prepare("SELECT id FROM {$this->wpdb->prefix}atum_inventories WHERE product_id = '{$product_id}' AND is_main = '0'");
 
 
-      $inventory = $this->wpdb->get_results($this->query);
+      $inventories = $this->wpdb->get_results($this->query);
 
-      $inventory_id = $inventory[0]->id;
-      $this->query = $this->wpdb->prepare("SELECT stock_quantity FROM {$this->wpdb->prefix}atum_inventory_meta WHERE inventory_id = '{$inventory_id }'");
+      $inventory_ids = array();
+      $stock;
+
+      foreach($inventories as $inventory) {
+        array_push($inventory_ids, $inventory->id);
+      }
+
+      $id_list = implode(",", $inventory_ids);
+
+      $this->query = $this->wpdb->prepare("SELECT stock_quantity FROM {$this->wpdb->prefix}atum_inventory_meta WHERE inventory_id IN (" . $id_list . ")" );
+
       $result = $this->wpdb->get_results($this->query);
 
-      $stock = $result[0]->stock_quantity;
+      foreach($result as $quantity) {
+        $stock = $stock + $quantity->stock_quantity;
+      }
 
       return (int)$stock;
 

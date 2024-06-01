@@ -36,22 +36,6 @@ function square_for_atum_settings_page() {
         </td>
         </tr>
 
-        <tr valign="top">
-        <th scope="row">Unsynchronized Inventory Name</th>
-        <td>
-          <p>This should be the exact name of the inventory that needs to be exhausted before the Square inventory stock is reduced. (For example 'Warehouse').</p>
-          <input type="text" name="unsynced_inventory_name" value="<?php echo esc_attr( get_option('unsynced_inventory_name') ); ?>" />
-        </td>
-        </tr>
-
-        <tr valign="top">
-        <th scope="row">Square Synchonized Inventory Name</th>
-        <td>
-          <p>This should be the exact name of the inventory you will be creating with ATUM that you would like to sync with your Square stock.</p>
-          <input type="text" name="synced_inventory_name" value="<?php echo esc_attr( get_option('synced_inventory_name') ); ?>" />
-        </td>
-        </tr>
-
     </table>
 
     <?php submit_button(); ?>

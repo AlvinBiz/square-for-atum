@@ -6,16 +6,12 @@ class SyncInventory {
   protected $api_key;
   protected $product_sku;
   protected $ordered_quantity;
-  protected $inventory_name;
-  protected $unsynced_inventory_name;
 
-  public function __construct($product_id, string $api_key, $product_sku, $ordered_quantity, $inventory_name, $unsynced_inventory_name) {
+  public function __construct($product_id, string $api_key, $product_sku, $ordered_quantity) {
     $this->product_id = $product_id;
     $this->api_key = $api_key;
     $this->product_sku = $product_sku;
     $this->ordered_quantity = $ordered_quantity;
-    $this->inventory_name = $inventory_name;
-    $this->unsynced_inventory_name = $unsynced_inventory_name;
   }
 
   public function decrease_stock() {
@@ -44,7 +40,7 @@ class SyncInventory {
 
     $update = new Inventory($this->api_key, NULL);
     $query = new DB;
-    $atum_unsynced_stock = $query->getATUMUnsyncedStock($this->product_id, $this->unsynced_inventory_name);
+    $atum_unsynced_stock = $query->getATUMUnsyncedStock($this->product_id);
 
     $squareInventoryObj = json_decode($request->getInventory($square_id, $location));
 
@@ -57,27 +53,14 @@ class SyncInventory {
       }
     }
 
+    
+
     if($atum_unsynced_stock == 0) {
 
-      $unsynced_stock = $current_quantity - $squareCurrentStock;
-      $stock_to_remove = $this->ordered_quantity - $unsynced_stock;
+      $prev_atum_stock = $current_quantity - $squareCurrentStock;
 
-      $file_path = WP_PLUGIN_DIR . '/square-for-atum/error_log.txt';
-      $myfile = fopen($file_path, "a") or die("Unable to open file!");
-      $txt = ' Current stock: ' . $current_quantity;
-      $txt .= ' Unsyced stock ' . $unsynced_stock;
-      $txt .= ' ATUM unsyced stock ' . $atum_unsynced_stock;
-      $txt .= ' Square stock: ' . $squareCurrentStock;
-      $txt .= ' Stock to remove: ' . $stock_to_remove;
-      $txt .= ' Other stock to remove: ' . $this->ordered_quantity - $atum_unsynced_stock;
-      fwrite($myfile, $txt);
-      fclose($myfile);
+      $stock_to_remove = $this->ordered_quantity - $prev_atum_stock;
 
-      $update->updateInventory($square_id, $from_state, $to_state, $location, $stock_to_remove);
-
-    } elseif ($atum_unsynced_stock <= $this->ordered_quantity) {
-
-      $stock_to_remove = $this->ordered_quantity - $atum_unsynced_stock;
 
       $update->updateInventory($square_id, $from_state, $to_state, $location, $stock_to_remove);
 
@@ -114,7 +97,9 @@ class SyncInventory {
 
     foreach($squareInventoryObj->counts as $count) {
       if($count->state == 'IN_STOCK') {
+
         $squareCurrentStock = $count->quantity;
+
       }
     }
 
