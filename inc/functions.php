@@ -10,27 +10,22 @@ function decrease_stock($order_id) {
     $ordered_product_id = $item_data['product_id'];
 
     $ordered_quantity = $item_data['quantity'];
+    $sku = $item_data['sku'];
     $api_key = get_option('api_key');
 
     if($item_data['variation_id']) {
-      $sync = new SyncInventory($item_data['variation_id'], $api_key, NULL, $ordered_quantity);
+      $sync = new SyncInventory($item_data['variation_id'], $api_key, $sku, $ordered_quantity);
       $sync->decrease_stock();
       $squareStock = $sync->get_square_stock();
 
-      $file_path = WP_PLUGIN_DIR . '/square-for-atum/error_log.txt';
-      $myfile = fopen($file_path, "a") or die("Unable to open file!");
-      $txt = ' Square stock: ' . $squareStock;
-      fwrite($myfile, $txt);
-      fclose($myfile);
-
-      $_product = new WC_Product($product_id);
+      $_product = new WC_Product($item_data['variation_id']);
 
       if (!is_null($squareStock)) {
         $_product->set_stock($squareStock);
       }
       
     } else {
-      $sync = new SyncInventory($ordered_product_id, $api_key, NULL, $ordered_quantity);
+      $sync = new SyncInventory($ordered_product_id, $api_key, $sku, $ordered_quantity);
       $sync->decrease_stock();
       $squareStock = $sync->get_square_stock();
 
@@ -117,6 +112,66 @@ function sync_in_store_inventory_on_add_to_cart($cart_id, $product, $request_qua
 
 }
 
+function process_checkout_creating_order( $order, $data ) {
+    $wooorder = json_decode($order);
+
+    foreach ($wooorder->line_items as $item) {
+
+      $ordered_product_id = $item->legacy_values->product_id;
+      $variation_id = $item->legacy_values->variation_id;
+
+      $ordered_quantity = $item->legacy_values->quantity;
+      $api_key = get_option('api_key');
+
+      if($variation_id) {
+
+        $_product = wc_get_product($variation_id);
+        $sku = $_product->get_sku();
+
+        $sync = new SyncInventory($variation_id, $api_key, $sku, $ordered_quantity);
+        $squareStock = $sync->get_square_stock();
+
+        // $file_path = WP_PLUGIN_DIR . '/square-for-atum/error_log.txt';
+        // $myfile = fopen($file_path, "a") or die("Unable to open file!");
+        // $txt = ' JSON: ' . json_encode($item);
+        // $txt .= ' Quantity ' . $ordered_quantity;
+        // fwrite($myfile, $txt);
+        // fclose($myfile);
+
+        // throw new Exception('test exception');
+
+        if ($squareStock < $ordered_quantity) { 
+
+          if (!is_null($squareStock)) {
+            $_product->set_stock($squareStock);
+          }
+
+          throw new Exception( __("It looks like there are not enough items in stock. Please go back to cart and adjust the quantity.") );
+
+        }
+      
+    } else {
+
+      $_product = wc_get_product($ordered_product_id);
+      $sku = $_product->get_sku(); 
+
+      $sync = new SyncInventory($ordered_product_id, $api_key, $sku, $ordered_quantity);
+      $squareStock = $sync->get_square_stock();
+
+      if ($squareStock < $ordered_quantity) {
+
+        if (!is_null($squareStock)) {
+          update_post_meta( $ordered_product_id, '_stock', $squareStock );
+        } 
+
+        throw new Exception( __("It looks like there are not enough items in stock. Please go back to cart and adjust the quantity.") );
+
+      }
+    }
+
+  }
+
+}
 
 function load_admin_style() {
     wp_enqueue_style( 'square_atum_css', plugins_url()  . '/square-for-atum/admin/css/admin-styles.css', false, filemtime(plugins_url()  . '/square-for-atum/admin/css/admin-styles.css') );
@@ -127,5 +182,7 @@ add_action( 'woocommerce_payment_complete', 'decrease_stock', 12, 1 );
 
 add_action( 'woocommerce_after_product_object_save', 'sync_in_store_inventory_on_save', 10 , 4 );
 add_action( 'woocommerce_add_to_cart', 'sync_in_store_inventory_on_add_to_cart', 11, 6 );
+
+add_action( 'woocommerce_checkout_create_order', 'process_checkout_creating_order',  10, 2  );
 
 add_action( 'admin_enqueue_scripts', 'load_admin_style' );
