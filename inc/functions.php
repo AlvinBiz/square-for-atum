@@ -23,7 +23,7 @@ function decrease_stock($order_id) {
       if (!is_null($squareStock)) {
         $_product->set_stock($squareStock);
       }
-      
+
     } else {
       $sync = new SyncInventory($ordered_product_id, $api_key, $sku, $ordered_quantity);
       $sync->decrease_stock();
@@ -31,7 +31,7 @@ function decrease_stock($order_id) {
 
       if (!is_null($squareStock)) {
         update_post_meta( $ordered_product_id, '_stock', $squareStock );
-      }   
+      }
     }
 
   }
@@ -131,16 +131,7 @@ function process_checkout_creating_order( $order, $data ) {
         $sync = new SyncInventory($variation_id, $api_key, $sku, $ordered_quantity);
         $squareStock = $sync->get_square_stock();
 
-        // $file_path = WP_PLUGIN_DIR . '/square-for-atum/error_log.txt';
-        // $myfile = fopen($file_path, "a") or die("Unable to open file!");
-        // $txt = ' JSON: ' . json_encode($item);
-        // $txt .= ' Quantity ' . $ordered_quantity;
-        // fwrite($myfile, $txt);
-        // fclose($myfile);
-
-        // throw new Exception('test exception');
-
-        if ($squareStock < $ordered_quantity) { 
+        if ($squareStock < $ordered_quantity) {
 
           if (!is_null($squareStock)) {
             $_product->set_stock($squareStock);
@@ -149,11 +140,11 @@ function process_checkout_creating_order( $order, $data ) {
           throw new Exception( __("It looks like there are not enough items in stock. Please go back to cart and adjust the quantity.") );
 
         }
-      
+
     } else {
 
       $_product = wc_get_product($ordered_product_id);
-      $sku = $_product->get_sku(); 
+      $sku = $_product->get_sku();
 
       $sync = new SyncInventory($ordered_product_id, $api_key, $sku, $ordered_quantity);
       $squareStock = $sync->get_square_stock();
@@ -162,7 +153,7 @@ function process_checkout_creating_order( $order, $data ) {
 
         if (!is_null($squareStock)) {
           update_post_meta( $ordered_product_id, '_stock', $squareStock );
-        } 
+        }
 
         throw new Exception( __("It looks like there are not enough items in stock. Please go back to cart and adjust the quantity.") );
 
