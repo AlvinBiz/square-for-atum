@@ -53,7 +53,11 @@ class SyncInventory {
       }
     }
 
-    
+    $locationData = json_decode($request->getLocation($location));
+
+    $timezone = $locationData->location->timezone;
+    $time = current_datetime()->setTimezone(new DateTimeZone($timezone))->modify('+4 hour')->format('Y-m-d H:i:s');
+    $timeString = date("c", strtotime($time));
 
     if($atum_unsynced_stock == 0) {
 
@@ -62,7 +66,7 @@ class SyncInventory {
       $stock_to_remove = $this->ordered_quantity - $prev_atum_stock;
 
 
-      $update->updateInventory($square_id, $from_state, $to_state, $location, $stock_to_remove);
+      $update->updateInventory($square_id, $from_state, $to_state, $location, $stock_to_remove, $timeString);
 
     } else {
 

@@ -1,1 +1,0 @@
-{"idempotency_key": "219001935731","changes": [{"type": "ADJUSTMENT","adjustment": {"catalog_object_id": "3MPGGDHAV4TSUWRGDJYNDQLM","from_state": "IN_STOCK","to_state": "SOLD","location_id": "LYZ9YTSJMVXRF","quantity": "1","occurred_at": "2024-06-03T03:47:32+00:00"}}],"ignore_unchanged_counts": true}

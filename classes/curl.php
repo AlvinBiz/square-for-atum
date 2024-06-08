@@ -38,4 +38,28 @@ class Curl {
 
   }
 
+  public function curlCommandNoOpts() {
+
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, $this->curlOptURL);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+
+    $headers = array();
+    $headers[] = 'Square-Version: 2024-04-15';
+    $headers[] = 'Authorization: Bearer '.$this->authBearer;
+    $headers[] = 'Content-Type: application/json';
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    $result = curl_exec($ch);
+    if (curl_errno($ch)) {
+        echo 'Error:' . curl_error($ch);
+    }
+    curl_close($ch);
+
+    return $result;
+
+  }
+
 }

@@ -27,5 +27,15 @@ class CurlRequest extends API {
 
   }
 
+  public function getLocation($locationID) {
+    $curl = new Curl(
+      'https://connect.squareup.com/v2/locations/' . $locationID,
+      '',
+      $this->accToken
+    );
+
+    return $curl->curlCommandNoOpts();
+  }
+
 
 }

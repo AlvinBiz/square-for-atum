@@ -36,6 +36,3 @@ require_multi(
  "classes/sync-inventory.php",
  "inc/functions.php"
 );
-
-
-
