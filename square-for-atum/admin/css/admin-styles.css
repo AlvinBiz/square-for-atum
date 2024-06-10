@@ -1,7 +1,0 @@
-#adminmenu #toplevel_page_square-for-atum-admin-options img {
-  max-width: 55%;
-}
-
-.inventory-group.main span.editable:after {
-    content: ' (Synced)';  
-}
