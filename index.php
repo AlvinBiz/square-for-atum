@@ -14,7 +14,8 @@
  */
 
 require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-require_once( $_SERVER['DOCUMENT_ROOT'] . 'wp-load.php' );
+require_once( ABSPATH . 'wp-load.php' );
+
 function require_multi($files) {
    $files = func_get_args();
    foreach($files as $file) {
