@@ -2,13 +2,13 @@
 
 class SyncInventory {
 
-  protected $product_id;
+  protected $product_obj;
   protected $api_key;
   protected $product_sku;
   protected $ordered_quantity;
 
-  public function __construct($product_id, string $api_key, $product_sku, $ordered_quantity) {
-    $this->product_id = $product_id;
+  public function __construct($product_obj, string $api_key, $product_sku, $ordered_quantity) {
+    $this->product_obj = $product_obj;
     $this->api_key = $api_key;
     $this->product_sku = $product_sku;
     $this->ordered_quantity = $ordered_quantity;
@@ -16,8 +16,7 @@ class SyncInventory {
 
   public function decrease_stock() {
 
-
-    $_product = wc_get_product($this->product_id);
+    $_product = $this->product_obj;
     $sku = $_product->get_sku();
     $current_quantity = $_product->get_stock_quantity();
 
@@ -40,7 +39,7 @@ class SyncInventory {
 
     $update = new Inventory($this->api_key, NULL);
     $query = new DB;
-    $atum_unsynced_stock = $query->getATUMUnsyncedStock($this->product_id);
+    $atum_unsynced_stock = $query->getATUMUnsyncedStock($this->product_obj->get_id());
 
     $squareInventoryObj = json_decode($request->getInventory($square_id, $location));
 
@@ -73,7 +72,41 @@ class SyncInventory {
       return;
 
     }
+  }
 
+  public function send_stock() {
+    $_product = $this->product_obj;
+    $sku = $_product->get_sku();
+    $current_quantity = $_product->get_stock_quantity();
+
+    $request = new CurlRequest($this->api_key, $sku);
+    $productItem = json_decode($request->getItem());
+
+    if(is_object($productItem) && !is_null($productItem->items)) {
+      $items = $productItem->items[0]->item_data->variations;
+      $item;
+
+      foreach($items as $variation) {
+        if ($variation->item_variation_data->sku == $sku) {
+          $item = $variation;
+        }
+      }
+
+      $square_id = $item->id;
+      $from_state = 'IN_STOCK';
+      $to_state = 'SOLD';
+      $location = $item->item_variation_data->location_overrides[0]->location_id;
+
+      $update = new Inventory($this->api_key, NULL);
+
+      $locationData = json_decode($request->getLocation($location));
+      $timezone = $locationData->location->timezone;
+      $time = current_datetime()->setTimezone(new DateTimeZone($timezone))->modify('+4 hour')->format('Y-m-d H:i:s');
+      $timeString = date("c", strtotime($time));
+
+      $update->sendInventory($square_id, $from_state, NULL, $location, $current_quantity, $timeString);
+
+    }
   }
 
   public function get_square_stock() {
@@ -81,6 +114,7 @@ class SyncInventory {
     $request = new CurlRequest($this->api_key, $this->product_sku);
 
     $productItem = json_decode($request->getItem());
+
     $items = $productItem->items[0]->item_data->variations;
     $item;
 
@@ -107,10 +141,8 @@ class SyncInventory {
       }
     }
 
-
     return $squareCurrentStock;
 
-
-  }
+    }
 
 }

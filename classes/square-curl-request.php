@@ -4,7 +4,6 @@ class CurlRequest extends API {
 
   public function getItem() {
 
-
     $curl = new Curl(
       'https://connect.squareup.com/v2/catalog/search-catalog-items',
       "{\n    \"text_filter\": \"" . $this->sku . "\",\n    \"limit\": 1\n  }",
@@ -28,6 +27,7 @@ class CurlRequest extends API {
   }
 
   public function getLocation($locationID) {
+
     $curl = new Curl(
       'https://connect.squareup.com/v2/locations/' . $locationID,
       '',
@@ -35,7 +35,6 @@ class CurlRequest extends API {
     );
 
     return $curl->curlCommandNoOpts();
+
   }
-
-
 }
