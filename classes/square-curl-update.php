@@ -8,7 +8,7 @@ class Inventory extends API {
 
     $curl = new Curl(
       'https://connect.squareup.com/v2/inventory/changes/batch-create',
-      "{\"idempotency_key\": \"" . rand(111111111111,999999999999) . "\",\"changes\": [{\"type\": \"ADJUSTMENT\",\"adjustment\": {\"catalog_object_id\": \"" . $catalogObjID . "\",\"from_state\": \"" . $from_state . "\",\"to_state\": \"" . $to_state . "\",\"location_id\": \"" . $locID . "\",\"quantity\": \"".$count."\",\"occurred_at\": \"" . $time . "\"}}],\"ignore_unchanged_counts\": false}",
+      "{\"idempotency_key\": \"" . uniqid() . "\",\"changes\": [{\"type\": \"ADJUSTMENT\",\"adjustment\": {\"catalog_object_id\": \"" . $catalogObjID . "\",\"from_state\": \"" . $from_state . "\",\"to_state\": \"" . $to_state . "\",\"location_id\": \"" . $locID . "\",\"quantity\": \"".$count."\",\"occurred_at\": \"" . $time . "\"}}],\"ignore_unchanged_counts\": false}",
       $this->accToken
       );
     return $curl->curlCommand();
@@ -18,7 +18,7 @@ class Inventory extends API {
 
     $curl = new Curl(
       'https://connect.squareup.com/v2/inventory/changes/batch-create',
-      "{\"idempotency_key\": \"" . rand(111111111111,999999999999) . "\",\"changes\": [{\"type\": \"PHYSICAL_COUNT\",\"physical_count\": {\"catalog_object_id\": \"" . $catalogObjID . "\",\"state\": \"" . $from_state . "\",\"location_id\": \"" . $locID . "\",\"quantity\": \"".$count."\",\"occurred_at\": \"" . $time . "\"}}],\"ignore_unchanged_counts\": true}",
+      "{\"idempotency_key\": \"" . uniqid() . "\",\"changes\": [{\"type\": \"PHYSICAL_COUNT\",\"physical_count\": {\"catalog_object_id\": \"" . $catalogObjID . "\",\"state\": \"" . $from_state . "\",\"location_id\": \"" . $locID . "\",\"quantity\": \"".$count."\",\"occurred_at\": \"" . $time . "\"}}],\"ignore_unchanged_counts\": true}",
       $this->accToken
       );
     return $curl->curlCommand();
